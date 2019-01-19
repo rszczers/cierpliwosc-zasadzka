@@ -1,0 +1,26 @@
+<article>
+    <section class="header">
+        $date$
+        $if(author)$
+            – $author$
+        $endif$
+    </section>
+    <section>
+        $body$
+    </section>
+</article>
+
+<div id="disqus_thread"></div>
+<script>
+  var disqus_config = function () {
+    this.page.url = "http://cierpliwosc-zasadzka.pl$url$";
+    this.page.identifier = "cierpliwosc-zasadzka: $title$"; 
+  };
+  (function() { 
+    var d = document, s = d.createElement('script');
+    s.src = 'https://cierpliwosc-zasadzka.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>

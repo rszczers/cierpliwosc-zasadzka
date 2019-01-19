@@ -1,0 +1,10 @@
+<ul>
+    $for(posts)$
+        <li>
+            $date$ – <a href="$url$">$title$</a><br>
+            $if(tags)$
+            <summary class="tag">Kategoria: $tags$</summary>
+            $endif$
+        </li>
+    $endfor$
+</ul>
