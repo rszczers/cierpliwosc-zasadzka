@@ -9,6 +9,7 @@ import           Text.Parsec.Combinator
 import           Data.Either (fromRight)
 import           Text.Regex (subRegex, mkRegex)
 import           Data.Monoid (mappend)
+import           Data.Maybe (fromJust)
 import           Hakyll
 import           Data.Bifunctor
 import qualified Data.Set as S
@@ -181,15 +182,14 @@ themedFormulaOptions = PandocFormulaOptions
     }
 
 specMath :: String -> FormulaOptions
-specMath s = FormulaOptions "\\usepackage{amsmath}\
+specMath s = FormulaOptions 
+   ("\\usepackage{amsmath}\
     \\\usepackage{tikz}\
     \\\usepackage{amsfonts}\
     \\\usepackage{xcolor}\
-    \\\definecolor{fg}{HTML}{c5d4db}\
-    \\\everymath\\expandafter{\
-        \\\the\\everymath \\color{fg}}\
-    \\\everydisplay\\expandafter{\
-        \\\the\\everydisplay \\color{fg}}" s 275
+    \\\definecolor{fg}{HTML}{"  
+    ++ (tail $ fromJust $ lookup "foreground" colours) ++ 
+    "}\\everymath\\expandafter{\ \\\the\\everymath \\color{fg}}\ \\\everydisplay\\expandafter{\ \\\the\\everydisplay \\color{fg}}") s 275
 
 customReaderOptions = def { readerExtensions = extraReaderExts <> customReaderExts }
   where
