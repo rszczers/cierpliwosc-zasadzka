@@ -29,6 +29,10 @@ figcaption {
     text-align: center;
 }
 
+summary a {
+  color: $color5$;
+}
+
 main pre {
     font-family: "Computer Modern Serif";
     font-style: italic;
@@ -79,11 +83,13 @@ footer {
 }
 
 h1 {
+  color: $color7$;
   font-size: 2.4rem;
   line-height: 2.6rem;
 }
 
 h2 {
+  color: $color7$;
   font-size: 2rem;
   line-height: 2.2rem;
 }
