@@ -6,18 +6,19 @@ import           Text.Parsec
 import           Text.Parsec.Char
 import           Text.Parsec.String
 import           Text.Parsec.Combinator
+import           Text.ParserCombinators.Parsec.Combinator
 import           Data.Either (fromRight)
 import           Text.Regex (subRegex, mkRegex)
 import           Data.Monoid (mappend)
 import           Data.Maybe (fromJust)
 import           Hakyll
 import           Data.Bifunctor
-import qualified Data.Set as S
 import           Hakyll.Contrib.LaTeX
 import           Hakyll.Web.Pandoc
 import           Text.Pandoc
 import           Text.Pandoc.Extensions
 import           Text.Pandoc.Definition
+import           Data.Hex
 import           Control.Monad (void)
 import           Image.LaTeX.Render
 import           Image.LaTeX.Render.Pandoc
@@ -45,29 +46,73 @@ feedConfiguration = FeedConfiguration
     , feedRoot        = pageAddress zniecheta
     }
 
-colours :: [(String, String)]
-colours = [ ("foreground",   "#c5d4db") -- special
-          , ("background",   "#090b0c")
-          , ("cursorColor",  "#c5d4db")
-          , ("color0",       "#111415") -- black
-          , ("color8",       "#ebb692")
-          , ("color1",       "#191d1f") -- red
-          , ("color9",       "#bda6e0")
-          , ("color2",       "#292f31") -- green
-          , ("color10",      "#70abc1")
-          , ("color3",       "#3f474b") -- yellow
-          , ("color11",      "#efb58b")
-          , ("color4",       "#5b666b") -- blue
-          , ("color12",      "#e09140")
-          , ("color5",       "#7c8a91") -- magenta
-          , ("color13",      "#eea76b")
-          , ("color6",       "#a3b5be") -- cyan
-          , ("color14",      "#7fd2ef")
-          , ("color7",       "#dbe4e8") -- white
-          , ("color15",      "#e091b6")]
+type AColour = [(String, String)]
+type HexColour = Int
+
+data XResources = XResources { foreground  :: HexColour
+                             , background  :: HexColour
+                             , cursorColor :: HexColour
+                             , color0      :: HexColour
+                             , color8      :: HexColour
+                             , color1      :: HexColour
+                             , color9      :: HexColour
+                             , color2      :: HexColour
+                             , color10     :: HexColour
+                             , color3      :: HexColour
+                             , color11     :: HexColour
+                             , color4      :: HexColour
+                             , color12     :: HexColour
+                             , color5      :: HexColour
+                             , color13     :: HexColour
+                             , color6      :: HexColour
+                             , color14     :: HexColour
+                             , color7      :: HexColour
+                             , color15     :: HexColour}
+
+parseXRes :: Parser [(String, String)]
+parseXRes = concat <$> many1 matchSection
+
+matchSection :: Parser [(String, String)]
+matchSection = do
+    matchHeading
+    xs <- many1 matchColour
+    optional eol
+    return xs
+
+matchHeading :: Parser ()
+matchHeading = do
+    char '!'
+    space
+    many1 alphaNum
+    eol
+    return ()
+
+matchColour :: Parser (String, String)
+matchColour = do
+    string "*." 
+    name <- many1 letter 
+    dig  <- many digit
+    char ':'
+    spaces
+    char '#' 
+    x <- many1 alphaNum 
+    string "\n"
+    return (name ++ dig, '#':x)
+
+eol :: Parser String
+eol = try (string "\n\r")
+  <|> try (string "\r\n")
+  <|> string "\n"
+  <|> string "\r"
+  <?> "end of line"
+
+getColoursFromFile :: IO AColour
+getColoursFromFile = fromRight [("fail", "fail")] <$>
+    parseFromFile parseXRes "random.txt"
 
 main :: IO ()
-main = do
+main = do 
+  fColours <- getColoursFromFile
   renderFormulae <- initFormulaCompilerDataURI 1000 defaultEnv
   hakyll $ do
     match "images/*" $ do
@@ -81,6 +126,9 @@ main = do
     match "css/*.css" $ do
         route   idRoute
         compile $ do
+          let colourCtx = (mconcat $ 
+                            (uncurry constField) <$>
+                              fColours) <> defaultContext
           fmap compressCss <$>
             getResourceString >>= applyAsTemplate colourCtx
 
@@ -125,7 +173,7 @@ main = do
         compile $ pandocCompilerWithTransformM
             customReaderOptions
             defaultHakyllWriterOptions
-            (renderFormulae themedFormulaOptions)
+            (renderFormulae $ themedFormulaOptions fColours)
             >>= loadAndApplyTemplate "templates/post.html"    (postCtxWithTags tags)
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/default.html" (postCtxWithTags tags)
@@ -161,7 +209,6 @@ main = do
 
     match "templates/*" $ compile templateBodyCompiler
 
-
 --------------------------------------------------------------------------------
 postCtx :: Context String
 postCtx =
@@ -171,25 +218,25 @@ postCtx =
 postCtxWithTags :: Tags -> Context String
 postCtxWithTags tags = tagsField "tags" tags `mappend` postCtx
 
-colourCtx :: Context String
-colourCtx = (mconcat $ (uncurry constField) <$> colours) <> defaultContext
-
-themedFormulaOptions :: PandocFormulaOptions
-themedFormulaOptions = PandocFormulaOptions
+themedFormulaOptions :: AColour -> PandocFormulaOptions
+themedFormulaOptions colours = PandocFormulaOptions
     { shrinkBy = 2
     , errorDisplay = displayError
-    , formulaOptions = \case DisplayMath -> specMath "displaymath"; _ -> specMath "math"
+    , formulaOptions = \case DisplayMath -> (specMath colours "displaymath"); _ -> (specMath colours "math")
     }
 
-specMath :: String -> FormulaOptions
-specMath s = FormulaOptions 
-   ("\\usepackage{amsmath}\
+specMath :: AColour -> String -> FormulaOptions
+specMath colours s = FormulaOptions
+    ("\\usepackage{amsmath}\
     \\\usepackage{tikz}\
     \\\usepackage{amsfonts}\
     \\\usepackage{xcolor}\
-    \\\definecolor{fg}{HTML}{"  
-    ++ (tail $ fromJust $ lookup "foreground" colours) ++ 
-    "}\\everymath\\expandafter{\ \\\the\\everymath \\color{fg}}\ \\\everydisplay\\expandafter{\ \\\the\\everydisplay \\color{fg}}") s 275
+    \\\definecolor{fg}{HTML}{"
+    ++ (tail $ fromJust $ lookup "foreground" colours) ++
+    "}\\everymath\\expandafter{\
+    \\\the\\everymath \\color{fg}}\
+    \\\everydisplay\\expandafter{\
+    \\\the\\everydisplay \\color{fg}}") s 275
 
 customReaderOptions = def { readerExtensions = extraReaderExts <> customReaderExts }
   where

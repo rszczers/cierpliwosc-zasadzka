@@ -33,7 +33,7 @@ Ramund hin Unge
 </tr>
 <tr>
 <td>
-Rajmund zdałby się pięknym panem<br/>
+Rajmund zdałby się milszym panem<br/>
 gdyby miał ubiór mniej ponury<br/>
 Przybyła doń panna z ubraniem<br/>
 Z przędzy przedniej, łyka i skóry<br/>
