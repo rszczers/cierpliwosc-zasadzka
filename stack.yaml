@@ -40,7 +40,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps: 
  - git: https://github.com/rszczers/latex-formulae
-   commit: 72bb74f01ae3193d9fe6c906602afc1489b166b6
+   commit: ae55b55d3c1c8cb0b1c42f19df4cdd5d6a00198d
    subdirs:
      - latex-formulae-pandoc
      - latex-formulae-image
