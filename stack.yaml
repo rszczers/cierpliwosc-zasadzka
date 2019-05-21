@@ -39,9 +39,13 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps: 
-- latex-formulae-pandoc-0.2.0.6
-- latex-formulae-hakyll-0.2.0.4
-- latex-formulae-image-0.1.1.4
+ - git: https://github.com/rszczers/latex-formulae
+   commit: 72bb74f01ae3193d9fe6c906602afc1489b166b6
+   subdirs:
+     - latex-formulae-pandoc
+     - latex-formulae-image
+     - latex-formulae-hakyll
+
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

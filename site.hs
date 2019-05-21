@@ -170,10 +170,14 @@ main = do
 
     match "posts/*.markdown" $ do
         route $ setExtension "html"
+        let mc   = tail $ fromJust $ lookup "foreground" fColours
+            mdpi = 275
         compile $ pandocCompilerWithTransformM
             customReaderOptions
             defaultHakyllWriterOptions
-            (renderFormulae $ themedFormulaOptions fColours)
+            (renderFormulae $ defaultPandocFormulaOptions 
+                              `customize` mathColour mc
+                              `customize` FormulaOptions [] [] mdpi)
             >>= loadAndApplyTemplate "templates/post.html"    (postCtxWithTags tags)
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/default.html" (postCtxWithTags tags)
@@ -217,26 +221,6 @@ postCtx =
 
 postCtxWithTags :: Tags -> Context String
 postCtxWithTags tags = tagsField "tags" tags `mappend` postCtx
-
-themedFormulaOptions :: AColour -> PandocFormulaOptions
-themedFormulaOptions colours = PandocFormulaOptions
-    { shrinkBy = 2
-    , errorDisplay = displayError
-    , formulaOptions = \case DisplayMath -> (specMath colours "displaymath"); _ -> (specMath colours "math")
-    }
-
-specMath :: AColour -> String -> FormulaOptions
-specMath colours s = FormulaOptions
-    ("\\usepackage{amsmath}\
-    \\\usepackage{tikz}\
-    \\\usepackage{amsfonts}\
-    \\\usepackage{xcolor}\
-    \\\definecolor{fg}{HTML}{"
-    ++ (tail $ fromJust $ lookup "foreground" colours) ++
-    "}\\everymath\\expandafter{\
-    \\\the\\everymath \\color{fg}}\
-    \\\everydisplay\\expandafter{\
-    \\\the\\everydisplay \\color{fg}}") s 275
 
 customReaderOptions = def { readerExtensions = extraReaderExts <> customReaderExts }
   where
