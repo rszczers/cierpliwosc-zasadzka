@@ -34,8 +34,8 @@ zniecheta = PageStuff
     "Martwa skrzynka o matematyce, grach fabularnych i tematach pokrewnych."
     "Cierpliwość-zasadzka"
     "Rafał Szczerski"
-    "fulgjon@pm.me"
-    "http://cierpliwosc-zasadzka.pl"
+    "rafal@szczerski.pl"
+    "http://blog.szczerski.pl"
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
@@ -183,6 +183,18 @@ main = do
             >>= loadAndApplyTemplate "templates/default.html" (postCtxWithTags tags)
             >>= relativizeUrls
 
+    create ["sitemap.xml"] $ do
+        route idRoute
+        compile $ do
+            posts <- recentFirst =<< loadAll "posts/*"
+            singlePages <- loadAll (fromList ["about.rst", "contact.markdown"])
+            let pages = posts <> singlePages
+                sitemapCtx =
+                    constField "root" (pageAddress zniecheta) <> -- here
+                    listField "pages" postCtx (return pages)
+            makeItem ""
+                >>= loadAndApplyTemplate "templates/sitemap.xml" sitemapCtx
+
     create ["archive.html"] $ do
         route idRoute
         compile $ do
@@ -216,6 +228,7 @@ main = do
 --------------------------------------------------------------------------------
 postCtx :: Context String
 postCtx =
+    constField "root" (pageAddress zniecheta) <>
     dateField "date" "%Y-%m-%d" `mappend`
     defaultContext
 

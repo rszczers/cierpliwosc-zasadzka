@@ -1,0 +1,183 @@
+---
+title: "Poczta w terminalu: neomutt + pass + getmail + msmtp"
+date: 2019-06-13 22:46:02
+tags: linux, polish
+---
+
+_Jest to, jak sądzę, początek serii stereotypowych tekstów o konfiguracji mojego ulubionego oprogramowania pisany z zamysłem oszczędzenia pracy sobie i innym[^0] przy ponownej konfiguracji tych samych rzeczy._
+
+## Wstęp natury kronikarskiej
+Skonfigurowałem kilka dni temu [mutt](https://neomutt.org/)a[^1]. Było tak: wpadłem w zamyślenie. Unikam w ten sposób wykonywania obowiązków natury intelektualnej i nie czuję z tego powodu szczególnych wyrzutów sumienia -- wszak robię wówczas też coś _ważnego_. [Robię to ciągle](http://www.marktarver.com/bipolar.html). Na tle niedawnego udanego zakupu domeny [szczerski.pl](http://szczerski.pl) zafrapowałem się przykrotą rutynowego odbierania maili, której stawiam czoła każdego ranka.
+
+Mutta używałem kilka(naście?) lat temu przez jakiś krótki okres. Potem znowu, i kilka razy jeszcze znowu z przerwami. Odkryłem, że w sumie nie robię niczego innego od kilkunastu lat: testuję różne rzeczy, zapominam co zrobiłem, wracam do tego po jakimś czasie i znowu tracę życie na czytaniu dokumentacji. Tak było tym razem.
+
+![](/images/groundhog.jpg)
+
+[Luke Smith](https://lukesmith.xyz/) to mądry człowiek. Sprowadził proces konfiguracji mutta (afair w kompanii z [`isync`](http://isync.sourceforge.net/) albo [`offlineimap`](http://www.offlineimap.org/), [`msmtp`](https://marlam.de/msmtp/), generowaniem kluczy gpg itp.) do wpisania loginu, hasła i kliknięcia kilku guziczków. Gdyby Czytelnik zechciał tylko poigrać z muttem, a cechowałaby go tolerancja dla proponowanych przez Luke'a konfiguracji (bardzo dobrych skądinąd), to serdecznie zachęcam do darowania sobie tego tekstu i zapoznania się ze skryptem [mutt-wizard](https://github.com/LukeSmithxyz/mutt-wizard).
+
+Dla mnie ten skrypt robi dużo i nie mam ochoty próbować połapać się co robi dokładnie. Jestem prostym człowiekiem, miałem następujące oczekiwania:
+
+* Chcę pobierać maile przez pop3,
+* Chcę pobrane maile usuwać ze skrzynki niezwłocznie po pobraniu,
+* Chcę szyfrowania gpg.
+
+Mutt od jakiegoś czasu wspiera połączenia ze skrzynkami pocztowymi[^2]. Jako, że jestem niezdrowo zainteresowany prywatnością mojej korespondencji, uwiera mnie archiwizowanie jej na czyimś serwerze dłużej niż to niezbędnie konieczne. Domyślam się, że Czytelnik jednak nie ma z tym problemu i wystarczy mu zdalny dostęp do skrzynki. W tym celu, w myśl [tej](https://www.youtube.com/watch?v=2jMInHnpNfQ) minimalnej prezentacji mutta, wystarczy w `.muttrc` umieścić
+```
+set folder=imaps://login@domena.pl@domena.pl:port
+set spoolfile = "+INBOX"
+```
+
+W przeciwnym wypadku zapraszam do lektury. Następująca część tekstu to kolejne kroki prowadzące do skonfigurowania mutta.
+
+## [pass](https://www.passwordstore.org/)
+[Pass](https://www.passwordstore.org/) to prosta nakładka na gpg do zarządzania hasłami. Niedawno odkryłem ten mały kochany programik. Hasła domyślnie organizowane są w katalogu `~/.password-store` i kodowane wybranym kluczem gpg. Pierwsze użycie wymaga komendy `pass init`. Obsługa jest banalna:
+
+```
+% Dodanie istniejącego hasła
+pass insert   katalog/podkatalog/klucz
+
+% Wygenerowanie hasła z 20 znakami
+pass generate katalog/podkatalog/klucz -n 20
+
+% Usunięcie hasła
+pass remove   katalog/podkatalog/klucz
+```
+
+Istnieje świetny [pakiet](http://hackage.haskell.org/package/xmonad-contrib-0.15/docs/XMonad-Prompt-Pass.html) integrujący `Pass` z [XMonad](https://xmonad.org/). [Przykład](http://hackage.haskell.org/package/xmonad-contrib-0.15/docs/XMonad-Prompt-Pass.html#g:1) z dokumentacji wystarcza do konfiguracji.
+
+W dalszej części artykułu zakładam, że hasło do maila znajduje się w `mail/nazwa`.
+
+## [getmail](http://pyropus.ca/software/getmail/)
+Początkowo próbowałem pobierać dane za pomocą `offlineimap`, ale to służy tylko do synchronizacji lokalnej skrzynki pocztowej z tą zdalną. Nie znalazłem metody pozwalającej na usuwanie za jego pomocą maili z serwera. Do mojego celu dobrze nadaje się [`fetchmail`](http://www.fetchmail.info/) -- pamiętam, że używałem go, gdy pierwszy raz konfigurowałem sobie mutta. Niezbyt dobrze wspominam składnię plików konfiguracyjnych -- dlatego wybór padł na `getmail`. [`fdm`](https://github.com/nicm/fdm) wydaje się całkiem rozsądnym rozwiązaniem, ale dowiedziałem się o nim w chwili pisania tekstu i nie miałem jeszcze okazji wypróbować.
+
+Zasadnicza różnica między `getmail` a `offlineimap` i `fetchmail` polega na tym, że aby używać go do pobierania maili z wielu skrzynek należy stworzyć osobny plik konfiguracyjny dla każdej z nich. Ostatecznie nie jest to szczególnie frustrujące, bowiem cała robota i tak pójdzie do [`cron`](https://pl.wikipedia.org/wiki/Cron)a, ale dużo plików to niepotrzebny bałagan.
+
+Dla demonstracji skonfigurujemy `getmail` dla jednego konta. Dla pozostałych należy postępować analogicznie.
+
+Najpierw należy wybrać miejsce na lokalne repozytorium poczty. Przypuśćmy, że będzie to `~/.mail/nazwa/`. Następnie odtwarzamy strukturę [Maildir](https://pl.wikipedia.org/wiki/Maildir):
+
+```
+mkdir -p ~/.mail/nazwa/inbox/{new,cur,tmp}
+mkdir -p ~/.mail/nazwa/drafts/{new,cur,tmp}
+mkdir -p ~/.mail/nazwa/sent/{new,cur,tmp}
+```
+
+`getmail` będzie używał wyłącznie katalogu `inbox`. Poniżej zamieściłem przykładowy plik `~/.getmail/getmailrc`
+
+
+```
+[retriever]
+type = SimplePOP3SSLRetriever
+server = mail.domena.pl.
+username = mail@domena.pl
+port = 995
+password_command = ("/usr/bin/pass","mail/nazwa")
+
+[destination]
+type = Maildir
+path = ~/.mail/nazwa/inbox/
+
+[options]
+delete = True
+
+```
+
+Komentarza wymagają dwie linijki. Po pierwsze, w sekcji `[options]` parametr `delete` decyduje o tym, czy pobrane maile należy usunąć ze skrzynki. Po drugie, `password_command` pozwala na zapytanie programu `Pass` o hasło. W ten sposób unikamy umieszczania hasła w jawny sposób w pliku konfiguracyjnym.
+
+## [msmtp](https://marlam.de/msmtp/)
+
+Zamieszczam przykładowy plik `~/.msmtprc`
+```
+account         default
+protocol        smtp
+host            mail.domena.pl
+port            587
+
+from            mail@domena.pl
+user            mail@domena.pl
+passwordeval    pass mail/nazwa
+
+auth on
+tls on
+tls_nocertcheck
+```
+
+`passwordeval` pozwala pobrać hasło za pomocą `Pass`. W ten sposób znowu unikamy niepotrzebnego umieszczania haseł w sposób jawny w plikach konfiguracyjnych. Parametr `tls_nocertcheck` pomija weryfikowanie czy serwer smtp z którym się łączymy ma zaufany certyfikat TLS. Skutecznym wybiegiem jest ustawienie `tls_fingerprint` w myśl [tego artykułu](https://wiki.archlinux.org/index.php/Msmtp#Issues_with_TLS) z arch wiki.
+
+## [neomutt](https://neomutt.org/)
+
+Oto minimalna konfiguracja mutta, która spełnia moje oczekiwania.
+
+```
+set realname  = "Imię Nazwisko"
+set from      = "mail@domena.pl"
+
+set folder    = "~/.mail/nazwa"
+
+set mbox_type = Maildir
+set mbox      = +mbox
+set spoolfile = +inbox
+set record    = +sent
+set postponed = +drafts
+mailboxes +inbox
+
+set editor           = vim
+
+set sort             = threads
+
+# Cryptography
+set pgp_sign_as       = IDKLUCZA
+set pgp_use_gpg_agent = yes
+set crypt_autosign    = yes
+set crypt_verify_sig  = yes
+set crypt_replysign   = yes
+set crypt_use_gpgme   = yes
+set crypt_replysignencrypted = yes
+
+# Preview
+auto_view text/html
+
+# Sending
+set sendmail      = "/usr/bin/msmtp"
+set envelope_from = yes
+set edit_hdrs
+set send_charset  = "utf-8"
+
+source vim.muttrc
+source dracula.muttrc
+
+```
+
+gdzie [vim-keys.rc](https://raw.githubusercontent.com/neomutt/neomutt/master/contrib/vim-keys/vim-keys.rc) to plik z przypisaniem klawiszy naśladujących vima, zaś [`dracula.muttrc`](https://draculatheme.com/mutt/). to schemat kolorów. Parametr `pgp_sign_as` to oczywiście identyfikator naszego klucza prywatnego.
+
+
+## [cron](https://pl.wikipedia.org/wiki/Cron)
+
+Pozostaje dodać cronjoba, który będzie sprawdzał pocztę, powiedzmy, co pięć minut. Aby edytować plik `crontab` wykonujemy
+
+```
+crontab -e
+
+```
+i dodajemy linijkę
+
+```
+*/5 * * * * /usr/local/bin/getmail
+
+```
+
+Oczywiście ścieżka do `getmail` może różnić się pomiędzy różnymi dystrybucjami. Warto na to zwrócić szczególną uwagę…
+
+![](https://imgs.xkcd.com/comics/cron_mail.png)
+
+## Podsumowanie
+
+Pełny opis wymagałby oczywiście omówienia każdego parametru. Ich znaczenie jest o wiele łatwiej wyszukać w dokumentacji niż złożyć w działającą całość, dlatego zostawiam Czytelnika z tym problemem sam na sam. Cicho założyłem też, że Czytelnik wygenerował sobie już parę kluczy gpg. W przeciwnym wypadku odsyłam do [tego](https://fuse.pl/beton/krotki-wstep-do-osobistej-kryptografii.html) bloga. Konfigurację, którą prezentuję, warto rozszerzyć o [`notmuch`](https://notmuchmail.org/), ale o tym kiedy indziej. Obsługa `mutta` oczywiście prosi się o szerszy komentarz. Miałem trudność ze znalezieniem w internecie sensownej pomocy w nauce obsługi tego programu, dlatego pozwolę sobie odesłać do [tego](https://www.ucolick.org/~lharden/learnmutt.html) świetnego artykułu.
+
+To tyle,
+
+R.
+
+[^0]: ze względu na wybór języka pozostaję w tej materii pesymistą.
+[^1]: za każdym razem, gdy piszę `mutt` mam na myśli jego fork: `neomutt`.
+[^2]: mutt we wczesnych wersjach służył tylko do zarządzania lokalnym folderem z mailami.

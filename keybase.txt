@@ -1,0 +1,56 @@
+==================================================================
+https://keybase.io/fulgjon
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of http://blog.szczerski.pl
+  * I am fulgjon (https://keybase.io/fulgjon) on keybase.
+  * I have a public key ASAa0cTJxwlWS9RZW202BkmbgVVpTZ_JBkCSq4iZj-TMaQo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "01201ad1c4c9c709564bd4595b6d3606499b8155694d9fc9064092ab88998fe4cc690a",
+      "host": "keybase.io",
+      "kid": "01201ad1c4c9c709564bd4595b6d3606499b8155694d9fc9064092ab88998fe4cc690a",
+      "uid": "7a0170216fdd9c006980448c1399eb19",
+      "username": "fulgjon"
+    },
+    "merkle_root": {
+      "ctime": 1560500191,
+      "hash": "d16ac6a73b7b4c6b940b0626143d14074e14bd0d189d560f628b8913d3e2e7b90a2ea7283252945870f445bd9c1b3e7836d0baffd014fce2cd2e7b1be8726513",
+      "hash_meta": "aecf67cd047e2f30826368c8307bd484f13f947a4c0be226fe9828764ce1875b",
+      "seqno": 5569227
+    },
+    "service": {
+      "entropy": "XyeN2fQUYIRkgQ1mT0kV5f07",
+      "hostname": "blog.szczerski.pl",
+      "protocol": "http:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "4.1.0"
+  },
+  "ctime": 1560500202,
+  "expire_in": 504576000,
+  "prev": "581ae09cb908eb373773f6ee14836c83673b268a83a61766a873f9edc7583b7e",
+  "seqno": 25,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgGtHEyccJVkvUWVttNgZJm4FVaU2fyQZAkquImY/kzGkKp3BheWxvYWTESpcCGcQgWBrgnLkI6zc3c/buFINsg2c7JoqDphdmqHP57cdYO37EIH4nRwSXGnxz0SK2+epWfU2QiZijHZ3Q87E77kQnKftOAgHCo3NpZ8RAit8OL4WHwsFtmOe7VCd8LgNiT8VkAj3rtnbq3C+O2IHvqd8bR1JamEp98H6a2DxL560yt84t2/j5RsbAY5mUCKhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIJl+FGI3HO1In/Pgtr3rTFEMhyd5MNS5+QbdrK4V7XP+o3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/fulgjon
+
+==================================================================
