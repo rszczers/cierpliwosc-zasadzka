@@ -1,0 +1,3 @@
+[submodule "latex-formulae"]
+	path = latex-formulae
+	url = git@github.com:rszczers/latex-formulae.git

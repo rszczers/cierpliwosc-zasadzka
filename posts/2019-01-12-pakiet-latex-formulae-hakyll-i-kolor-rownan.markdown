@@ -43,7 +43,7 @@ Powstaje problem: jak zmienić kolor równań? Domyślnie LaTeX produkuje równ
 
 ### Jak to naprawić?
 
-Można oczywiscie napisać taką instancję; zajmę się tym jak tylko czas i ochota pozwoli. Ponieważ najtrwalsze są jednak rozwiązania prowizoryczne, wystarczy zdefiniować swój parametr typu [PandocFormulaOptions](https://hackage.haskell.org/package/latex-formulae-pan 
+Można oczywiscie napisać taką instancję; ~~zajmę się tym jak tylko czas i ochota pozwoli~~[^1]. Ponieważ najtrwalsze są jednak rozwiązania prowizoryczne, wystarczy zdefiniować swój parametr typu [PandocFormulaOptions](https://hackage.haskell.org/package/latex-formulae-pan 
   doc-0.2.0.6/docs/src/Image.LaTeX.Render.Pandoc.html#PandocFormulaOptions), a w nim swoją funkcję `formulaOptions` z parametrami typu [FormulaOptions](https://hackage.haskell.org/package/latex-formulae-image-0.1.1.4/docs/src/Image.LaTeX.Render.html#FormulaOptions). Rozwiązałem to następująco:
 
 ```haskell
@@ -94,3 +94,5 @@ W rezultacie otrzymujemy równania w zdefiniowanym kolorze:
 <center>
 [$$L_f(x) = \sum_{i=0}^n f(x_i) \prod_{j=0 \land j\ne i}^n \frac{x-x_j}{x_i-x_j}.$$](https://en.wikipedia.org/wiki/Polynomial_interpolation)
 </center>
+ 
+[^1]: Jak mówiłem, tak zrobiłem: PR z instancją monoidu i dodatkowe objaśnienie można znaleźć [tutaj](https://github.com/liamoc/latex-formulae/pull/10) :-)

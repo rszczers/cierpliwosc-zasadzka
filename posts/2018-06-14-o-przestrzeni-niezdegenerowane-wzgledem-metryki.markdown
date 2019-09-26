@@ -5,7 +5,7 @@ title: O podprzestrzeni niezdegenerowanej względem metryki
 date: 2018-06-14 00:16:16
 tags: matematyka, polish
 ---
-![$\mathrm{ker}\,g=\{x\in V |\ \forall y\in V: g(x,y)=0\} = V^{\perp}$](/images/direct_sum.png){width=100%}
+![$\mathrm{ker}\,g=\{x\in V |\ \forall y\in V: g(x,y)=0\} = V^{\perp}$](./images/direct_sum.png){width=100%}
 
 **Twierdzenie**[^0]**:** Jeśli $V=W \oplus \mathrm{ker}\,g$, to $W$ jest niezdegenerowana względem formy metrycznej
 $g$.
